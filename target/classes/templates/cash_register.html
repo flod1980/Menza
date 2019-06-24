@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Menza</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+		<link rel="stylesheet" th:href="@{css/bootstrap-grid.css}" href="../static/css/bootstrap-grid.css"/>
+		<link rel="stylesheet" th:href="@{css/custom.css}" href="../static/css/custom.css"/>
+		<meta charset="utf-8" />
+
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+			
+				<div class="col box">
+					<h2>Adatok felvitele</h2>
+					<!--<form>  -->
+						<table>
+							<tr>
+								<td align="right"><strong><label for="worker_name">A dolgozó neve:</label></strong></td>
+								<td colspan="3"  align="left">
+									<select id="worker_name">
+										<option  th:each = "worker:${list_workers}" th:value="${worker.id}">
+											<span class="selected_product_name" th:text="${worker.WorkerName}"></span>
+										</option>	
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td align="right"><strong>A vásárlás dátuma:</strong></td>
+								<td align="left"><input type="date" id="uploadDate" name="uploadDate" /></td>
+							</tr>
+							<tr>
+								<td align="right"><strong>A tétel neve:</strong></td>
+								<td  align="left">
+									<select id="product_name">
+										<option  th:each = "product:${list_products}" th:value="${product.id}" 
+										th:text="${product.productName + ' (' + product.productPrice} + ' Ft)' "></option>	
+									</select>
+								</td>
+								<td><strong><label for="input_item_quantity">Darabszám:</label></strong></td>
+								<td><input type="number" min="1" max="20" name="input_item_quantity" id="input_item_quantity" value="1" /></td>								
+							</tr>
+							<tr>
+								<td colspan="4"  align="right"><button id="add_item">Tétel hozzáadása</button></td>
+							</tr>
+							<tr class="hiddenElement" th:each = "product:${list_products}" >
+								<td th:id="'selectedProductId'+${product.id}"  th:text="${product.id}"></td>
+								<td th:id="'selectedProductName'+${product.id}"  th:text="${product.productName}"></td>
+								<td th:id="'selectedProductPrice'+${product.id}"  th:text="${product.productPrice}"></td>
+							</tr>
+						</table>
+					<!--</form>  -->
+				</div>
+				
+				<div class="col box">
+					<h2>Megvásárolandó tételek</h2>
+					<center>
+					<table id="cart-table">
+						<tr>
+							<th>ID</th>
+							<th>A termék neve</th>
+							<th>A termék egységára</th>
+							<th>Darabszám</th>
+							<th>Fizetendő</th>
+						</tr>
+					</table>
+							<table>
+								<tr>
+									<td colspan="2"><input class="hiddenElement" type="text" id="numberOfInputs" name="numberOfInputs" value=""/></td>
+								</tr>
+								<tr>
+									<td id="total_td"></td>
+									<td></td>
+								</tr>
+							</table>
+					</center>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+<script>
+	$(document).ready(function(){
+		var selectedItems = [];
+		var total = 0;
+		var inputs = 0;
+		$('#numberOfInputs').val(inputs);
+		$('#total_td').text(total + " Ft");
+		
+		
+		$('#add_item').click(function(){
+			var selectedItemNumber = $('#product_name').find('option:selected').val();
+			var selectedProductNameId = "#selectedProductName"+selectedItemNumber;
+			var selectedProductName =$(selectedProductNameId).text();
+			var selectedProductPriceId = "#selectedProductPrice"+selectedItemNumber;
+			var selectedProductPrice =$(selectedProductPriceId).text();
+			var selectedProductQuantity = $('#input_item_quantity').val();
+			var subTotal = selectedProductPrice * selectedProductQuantity;
+			subTotal = parseInt(subTotal, 10);
+			var inputNumber = selectedItems.length;
+
+			var row =[
+				selectedItemNumber, 
+				selectedProductNameId, 
+				selectedProductName, 
+				selectedProductPriceId, 
+				selectedProductPrice,
+				selectedProductQuantity,
+				subTotal
+			];
+			
+			selectedItems.push(row);
+			
+			
+			inputs = inputs + 1;
+			$('#numberOfInputs').val(inputs);
+			$('#cart-table').append('<tr class="datarow" id="datarow'+inputNumber+'"><td><input type="text" class="cartTable_input cartTable_id" size="2" id="selectedItemNumberId'+inputNumber+'" th:name="selectedItemNumber'+inputNumber+'" value="'+selectedItemNumber+'" disabled/></td><td><input type="text" class="cartTable_input cartTable_id" id="selectedProductNameId'+inputNumber+'" th:name="selectedProductName'+inputNumber+'" value="'+selectedProductName+'" disabled/></td><td><input type="text" size="2" class="cartTable_input cartTable_id" id="selectedProductPriceId'+inputNumber+'" th:name="selectedProductPrice'+inputNumber+'" value="'+selectedProductPrice+'" disabled/></td><td><input type="text" size="2" class="cartTable_input cartTable_id" id="selectedProductQuantityId'+inputNumber+'" th:name="selectedProductQuantity'+inputNumber+'" value="'+selectedProductQuantity+'" disabled /></td><td><input type="text" size="2" class="cartTable_input cartTable_id" id="subTotalId'+inputNumber+'" th:name="subTotal'+inputNumber+'" value="'+subTotal+'" disabled /></td></td><td><button class="delbtn" value="'+inputNumber+'">TÖRLÖM</button></td></tr>');
+			row = [];
+			total = total + subTotal;
+			$('#total_td').text("Végösszeg: "+total+" Ft");
+			
+		});
+		
+		
+		//Törlés
+		
+		$('body').delegate('.delbtn','click', function(){
+			
+			var delNum = $(this).val();
+			var delSubTotal = parseInt(  $("#subTotalId"+delNum).val()  ,  10);
+			var newTotal = total-delSubTotal;
+			total = newTotal;
+			$('#total_td').text("Végösszeg: "+total+" Ft");
+			$('.datarow').remove();
+			selectedItems.splice(delNum,1);
+			inputs = inputs-1;
+			
+			
+			
+			for(var i=0; i<selectedItems.length; i++){
+				$('#cart-table').append('<tr class="datarow" id="datarow'+i+'"><td><input type="text" class="cartTable_input cartTable_id" size="2" id="selectedItemNumberId'+i+'" th:name="selectedItemNumber'+i+'" value="'+selectedItems[i][0]+'" disabled/></td><td><input type="text" class="cartTable_input cartTable_id" id="selectedProductNameId'+i+'" th:name="selectedProductName'+i+'" value="'+selectedItems[i][1]+'" disabled/></td><td><input type="text" size="2" class="cartTable_input cartTable_id" id="selectedProductPriceId'+i+'" th:name="selectedProductPrice'+i+'" value="'+selectedItems[i][4]+'" disabled/></td><td><input type="text" size="2" class="cartTable_input cartTable_id" id="selectedProductQuantityId'+i+'" th:name="selectedProductQuantity'+i+'" value="'+selectedItems[i][5]+'" disabled /></td><td><input type="text" size="2" class="cartTable_input cartTable_id" id="subTotalId'+i+'" th:name="subTotal'+i+'" value="'+selectedItems[i][6]+'" disabled /></td></td><td><button class="delbtn" value="'+i+'">TÖRLÖM</button></td></tr>');				
+			}
+			
+			
+			$('#numberOfInputs').val(inputs);
+			
+		});
+		
+		
+	});
+</script>

@@ -1,0 +1,50 @@
+*{padding:0; margin:0; border:0;}
+body{
+	background:#08395e;
+}
+
+.box{
+	background:#6c899d;
+	color:#fff;
+	padding:20px;
+	margin:15px;
+	border-radius:10px;
+	box-shadow:2px 2px 2px rgba(0,0,0,0.5);
+}
+
+h2{text-align:center;}
+
+.clear{clear:both;}
+
+
+input, select, td, button{padding: 5px;}
+
+
+.box_left{
+	}
+
+.box{
+
+}
+.box_right{
+	text-align:center;
+
+	}
+	
+
+#cartTable th{
+	text-align:center;
+}
+
+
+.cartTable_input{
+	
+	background:#6c899d;
+	color:#fff;
+	text-align:center;
+}
+
+.hiddenElement{
+	display: none;
+}
+
